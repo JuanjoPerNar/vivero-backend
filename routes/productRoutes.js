@@ -5,7 +5,15 @@ const router = express.Router()
 
 router.get('/', async (req, res) => {
     try {
-        const products = await Product.find()
+        const { category } = req.query
+
+        let query = {}
+
+        if (category) {
+            query.category = category
+        }
+
+        const products = await Product.find(query)
         res.json(products)
     } catch (error) {
         console.error('Error al obtener los productos:', error)
