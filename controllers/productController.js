@@ -35,3 +35,22 @@ export const getProductById = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener el producto' })
     }
 }
+
+export const updateProduct = async (req, res) => {
+    const { id } = req.params
+    try {
+        const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
+            new: true,
+            runValidators: true,
+        })
+
+        if (!updatedProduct) {
+            return res.status(404).json({ message: 'Producto no encontrado' })
+        }
+
+        res.status(200).json(updatedProduct)
+    } catch (error) {
+        console.error('Error al actualizar el producto', error)
+        res.status(500).json({ message: 'Error al actualizar el producto' })
+    }
+}
