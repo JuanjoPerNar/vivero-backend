@@ -8,7 +8,7 @@ dotenv.config()
 connectDB()
 
 const app = express()
-const PORT = process.env.PORT || 3000
+app.use(express.json())
 
 app.get('/', (req, res) => {
     res.send('API del vivero funcionando')
@@ -16,6 +16,7 @@ app.get('/', (req, res) => {
 
 app.use('/products', productRoutes)
 
+const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
     console.log(`Servidor conrriendo en http://localhost:${PORT}`)    
 })
