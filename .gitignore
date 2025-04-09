@@ -3,6 +3,12 @@ node_modules/
 
 # Entorno
 .env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
 
 # Logs
 logs

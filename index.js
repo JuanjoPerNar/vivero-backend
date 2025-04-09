@@ -11,7 +11,7 @@ const app = express()
 app.use(express.json())
 
 app.get('/', (req, res) => {
-    res.send('API del vivero funcionando')
+    res.send('API del vivero funcionando.')
 })
 
 app.use('/products', productRoutes)
