@@ -1,28 +1,7 @@
-import mongoose from "mongoose"
+import express from "express"
 
-const postSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    author: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    description: {
-        type: String,
-        required: true,
-    },
-    image: {
-        type: String,
-        required: true,
-    }
-}, {
-    timestamps: true
-})
+const router = express.Router()
 
-const Post = mongoose.model('Post', postSchema)
+// Las rutas se añadirán más adelante
 
-export default Post
+export default router
