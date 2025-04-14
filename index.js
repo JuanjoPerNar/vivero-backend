@@ -4,9 +4,10 @@ import cors from 'cors'
 import connectDB from './config/db.js'
 import productRoutes from './routes/productRoutes.js'
 import postRoutes from './routes/postRoutes.js'
+import trefleRoutes from './routes/trefleRoutes.js'
+
 
 dotenv.config()
-
 connectDB()
 
 const app = express()
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/products', productRoutes)
+app.use('/api/trefle', trefleRoutes)
 app.use('/posts', postRoutes)
 
 const PORT = process.env.PORT || 3000
