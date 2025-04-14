@@ -7,28 +7,32 @@ if (!TOKEN) {
   throw new Error("Token de Trefle no definido.")
 }
 
-export const searchTreflePlants = async (query) => {
+export const searchTreflePlants = async (query, page = 1) => {
   try {
-    let response = await axios.get(BASE_URL, {
-      params: {
-        token: TOKEN,
-        'filter[common_name]': query
-      }
-    })
+    let response
 
-    if (response.data.data.length === 0) {
+    if (query) {
       response = await axios.get(BASE_URL, {
         params: {
           token: TOKEN,
-          'filter[scientific_name]': query
+          'filter[scientific_name]': query,
+          page
+        }
+      })
+    } else {
+      // Si no hay búsqueda, mostramos listado general
+      response = await axios.get(BASE_URL, {
+        params: {
+          token: TOKEN,
+          page
         }
       })
     }
 
     const results = response.data.data
 
-    if (results.length === 0) {
-      throw new Error('No se encontraron plantas con ese nombre.')
+    if (!results || results.length === 0) {
+      throw new Error('No se encontraron plantas.')
     }
 
     return results

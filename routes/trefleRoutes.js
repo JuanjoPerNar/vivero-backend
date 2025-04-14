@@ -3,6 +3,6 @@ import { searchPlants } from '../controllers/trefleController.js'
 
 const router = express.Router()
 
-router.get('/search', searchPlants)
+router.get('/', searchPlants)
 
 export default router
