@@ -25,7 +25,7 @@ const activitySchema = new mongoose.Schema({
   },
   location: {
     type: String,
-    required: [true, "La ubicación es obligatoria"]
+    default: ''
   },
   image: {
     type: String,

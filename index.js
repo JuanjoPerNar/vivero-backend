@@ -5,7 +5,9 @@ import connectDB from './config/db.js'
 import productRoutes from './routes/productRoutes.js'
 import postRoutes from './routes/postRoutes.js'
 import trefleRoutes from './routes/trefleRoutes.js'
-
+import activityRoutes from './routes/activityRoutes.js'
+import contactRoutes from './routes/contactRoutes.js'
+import userRoutes from './routes/userRoutes.js'
 
 dotenv.config()
 connectDB()
@@ -21,6 +23,10 @@ app.get('/', (req, res) => {
 app.use('/products', productRoutes)
 app.use('/api/trefle', trefleRoutes)
 app.use('/posts', postRoutes)
+app.use('/activities', activityRoutes)
+app.use('/contacts', contactRoutes)
+app.use('/users', userRoutes)
+
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
