@@ -8,6 +8,7 @@ import trefleRoutes from './routes/trefleRoutes.js'
 import activityRoutes from './routes/activityRoutes.js'
 import contactRoutes from './routes/contactRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import serviceRoutes from './routes/serviceRoutes.js'
 
 dotenv.config()
 connectDB()
@@ -26,7 +27,7 @@ app.use('/posts', postRoutes)
 app.use('/activities', activityRoutes)
 app.use('/contacts', contactRoutes)
 app.use('/users', userRoutes)
-
+app.use('/services', serviceRoutes)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
