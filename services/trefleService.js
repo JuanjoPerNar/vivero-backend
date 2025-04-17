@@ -20,7 +20,6 @@ export const searchTreflePlants = async (query, page = 1) => {
         }
       })
     } else {
-      // Si no hay búsqueda, mostramos listado general
       response = await axios.get(BASE_URL, {
         params: {
           token: TOKEN,

@@ -1,4 +1,4 @@
-import { searchTreflePlants } from '../utils/trefleService.js'
+import { searchTreflePlants } from '../services/trefleService.js'
 
 export const searchPlants = async (req, res) => {
   const { q, page } = req.query
