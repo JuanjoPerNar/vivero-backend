@@ -9,7 +9,7 @@ const serviceSchema = new mongoose.Schema({
   description: {
     type: String,
     required: [true, "La descripción es obligatoria"],
-    maxlength: [300, "La descripción no puede superar los 300 caracteres"]
+    maxlength: [2000, "La descripción no puede superar los 2000 caracteres"]
   },
   type: {
     type: String,
