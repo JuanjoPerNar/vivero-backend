@@ -1,76 +1,69 @@
-import { getFirestore } from 'firebase-admin/firestore'
-import { initializeApp, cert } from 'firebase-admin/app'
-import { readFileSync } from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { initializeApp, cert, getApps } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
+import fs from "fs"
+import path from "path"
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const serviceAccountPath = path.resolve("config/secrets/serviceAccountKey.json")
+const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"))
 
-const serviceAccount = JSON.parse(
-  readFileSync(path.join(__dirname, '../config/secrets/serviceAccountKey.json'))
-)
-
-initializeApp({
-  credential: cert(serviceAccount),
-})
+if (!getApps().length) {
+  initializeApp({
+    credential: cert(serviceAccount)
+  })
+}
 
 const db = getFirestore()
-const usersCollection = db.collection('users')
+const usersRef = db.collection("users")
 
 export const getAllUsers = async (req, res) => {
   try {
-    const snapshot = await usersCollection.get()
-    const users = []
-    snapshot.forEach(doc => {
-      users.push({ id: doc.id, ...doc.data() })
-    })
+    const snapshot = await usersRef.get()
+    const users = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
     res.status(200).json(users)
   } catch (error) {
-    console.error('Error al obtener los usuarios:', error)
-    res.status(500).json({ message: 'Error al obtener los usuarios' })
+    console.error("Error al obtener usuarios:", error)
+    res.status(500).json({ message: "Error al obtener usuarios" })
   }
 }
 
 export const getUserById = async (req, res) => {
-  const { uid } = req.params
+  const { id } = req.params
   try {
-    const userDoc = await usersCollection.doc(uid).get()
-    if (!userDoc.exists) {
-      return res.status(404).json({ message: 'Usuario no encontrado' })
+    const doc = await usersRef.doc(id).get()
+    if (!doc.exists) {
+      return res.status(404).json({ message: "Usuario no encontrado" })
     }
-    res.status(200).json({ id: userDoc.id, ...userDoc.data() })
+    res.status(200).json({ id: doc.id, ...doc.data() })
   } catch (error) {
-    console.error('Error al obtener el usuario:', error)
-    res.status(500).json({ message: 'Error al obtener el usuario' })
+    console.error("Error al obtener el usuario:", error)
+    res.status(500).json({ message: "Error al obtener el usuario" })
   }
 }
 
 export const updateUserRole = async (req, res) => {
-  const { uid } = req.params
+  const { id } = req.params
   const { role } = req.body
 
-  if (!role) {
-    return res.status(400).json({ message: 'El campo "role" es obligatorio' })
-  }
-
   try {
-    const userRef = usersCollection.doc(uid)
-    await userRef.update({ role })
-    res.status(200).json({ message: 'Rol actualizado correctamente' })
+    await usersRef.doc(id).update({ role })
+    res.status(200).json({ message: "Rol actualizado correctamente" })
   } catch (error) {
-    console.error('Error al actualizar el rol:', error)
-    res.status(500).json({ message: 'Error al actualizar el rol del usuario' })
+    console.error("Error al actualizar el rol:", error)
+    res.status(500).json({ message: "Error al actualizar el rol" })
   }
 }
 
 export const deleteUser = async (req, res) => {
-  const { uid } = req.params
+  const { id } = req.params
+
   try {
-    await usersCollection.doc(uid).delete()
-    res.status(200).json({ message: 'Usuario eliminado correctamente' })
+    await usersRef.doc(id).delete()
+    res.status(200).json({ message: "Usuario eliminado correctamente" })
   } catch (error) {
-    console.error('Error al eliminar el usuario:', error)
-    res.status(500).json({ message: 'Error al eliminar el usuario' })
+    console.error("Error al eliminar el usuario:", error)
+    res.status(500).json({ message: "Error al eliminar el usuario" })
   }
 }

@@ -2,6 +2,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import connectDB from './config/db.js'
+
 import productRoutes from './routes/productRoutes.js'
 import postRoutes from './routes/postRoutes.js'
 import trefleRoutes from './routes/trefleRoutes.js'
@@ -28,12 +29,5 @@ app.use('/activities', activityRoutes)
 app.use('/contacts', contactRoutes)
 app.use('/users', userRoutes)
 app.use('/services', serviceRoutes)
-
-if (process.env.NODE_ENV !== 'test') {
-  const PORT = process.env.PORT || 3000
-  app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`)
-  })
-}
 
 export default app
