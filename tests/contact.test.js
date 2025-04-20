@@ -4,47 +4,48 @@ import mongoose from "mongoose"
 import Contact from "../models/Contact.js"
 
 let server
-let createdContactId
+let createdContacts = []
 
 beforeAll(async () => {
-  server = app.listen(4004)
-  await mongoose.connect(process.env.MONGO_URI)
+  server = app.listen(4005)
+  await Contact.deleteMany({})
+  createdContacts = await Contact.insertMany([
+    { name: "Laura", email: "laura@mail.com", message: "Hola soy Laura" },
+    { name: "Carlos", email: "carlos@mail.com", message: "Hola soy Carlos" }
+  ])
 })
 
 afterAll(async () => {
-  await Contact.deleteMany({})
+  await server.close()
   await mongoose.connection.close()
-  server.close()
 })
 
 describe("Contact API", () => {
-  it("should create a new contact message", async () => {
-    const newContact = {
-      name: "Juan Pérez",
-      email: "juan@example.com",
-      message: "Estoy interesado en vuestros servicios."
-    }
-
-    const response = await request(app).post("/contacts").send(newContact)
-
-    expect(response.statusCode).toBe(201)
-    expect(response.body).toHaveProperty("_id")
-    expect(response.body.name).toBe("Juan Pérez")
-
-    createdContactId = response.body._id
+  it("POST /contacts - should create a new contact", async () => {
+    const newContact = { name: "Ana", email: "ana@mail.com", message: "Hola soy Ana" }
+    const res = await request(app).post("/contacts").send(newContact)
+    expect(res.statusCode).toBe(201)
+    expect(res.body).toHaveProperty("name", "Ana")
   })
 
-  it("should get all contact messages", async () => {
-    const response = await request(app).get("/contacts")
-
-    expect(response.statusCode).toBe(200)
-    expect(Array.isArray(response.body)).toBe(true)
+  it("GET /contacts - should return all contacts", async () => {
+    const res = await request(app).get("/contacts")
+    expect(res.statusCode).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body.length).toBeGreaterThanOrEqual(2)
   })
 
-  it("should delete a contact message", async () => {
-    const response = await request(app).delete(`/contacts/${createdContactId}`)
+  it("GET /contacts/:id - should return a single contact", async () => {
+    const contact = createdContacts.find(c => c.name === "Laura")
+    const res = await request(app).get(`/contacts/${contact._id}`)
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveProperty("name", "Laura")
+  })
 
-    expect(response.statusCode).toBe(200)
-    expect(response.body.message).toBe("Mensaje eliminado correctamente")
+  it("DELETE /contacts/:id - should delete a contact", async () => {
+    const contact = createdContacts.find(c => c.name === "Carlos")
+    const res = await request(app).delete(`/contacts/${contact._id}`)
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveProperty("message", "Mensaje eliminado correctamente")
   })
 })

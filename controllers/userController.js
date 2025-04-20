@@ -30,9 +30,9 @@ export const getAllUsers = async (req, res) => {
 }
 
 export const getUserById = async (req, res) => {
-  const { id } = req.params
+  const { uid } = req.params
   try {
-    const doc = await usersRef.doc(id).get()
+    const doc = await usersRef.doc(uid).get()
     if (!doc.exists) {
       return res.status(404).json({ message: "Usuario no encontrado" })
     }
@@ -44,11 +44,11 @@ export const getUserById = async (req, res) => {
 }
 
 export const updateUserRole = async (req, res) => {
-  const { id } = req.params
+  const { uid } = req.params
   const { role } = req.body
 
   try {
-    await usersRef.doc(id).update({ role })
+    await usersRef.doc(uid).update({ role })
     res.status(200).json({ message: "Rol actualizado correctamente" })
   } catch (error) {
     console.error("Error al actualizar el rol:", error)
@@ -57,10 +57,10 @@ export const updateUserRole = async (req, res) => {
 }
 
 export const deleteUser = async (req, res) => {
-  const { id } = req.params
+  const { uid } = req.params
 
   try {
-    await usersRef.doc(id).delete()
+    await usersRef.doc(uid).delete()
     res.status(200).json({ message: "Usuario eliminado correctamente" })
   } catch (error) {
     console.error("Error al eliminar el usuario:", error)

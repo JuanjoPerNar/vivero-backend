@@ -5,61 +5,49 @@ import { getFirestore } from "firebase-admin/firestore"
 const db = getFirestore()
 const usersRef = db.collection("users")
 
-let createdUserId
-let server
+describe("User API", () => {
+  const testUID = "test-uid-juan"
+  const testUser = {
+    name: "Juan",
+    email: "juan@test.com",
+    role: "user"
+  }
 
-beforeAll((done) => {
-  server = app.listen(done)
-})
-
-describe("User API (Firestore)", () => {
-  it("should create a new user in Firestore", async () => {
-    const newUser = {
-      name: "Test",
-      surname: "User",
-      email: "testuser@example.com",
-      role: "user"
-    }
-
-    const docRef = await usersRef.add(newUser)
-    createdUserId = docRef.id
-
-    const snapshot = await docRef.get()
-    const data = snapshot.data()
-
-    expect(data.name).toBe("Test")
-    expect(data.email).toBe("testuser@example.com")
+  beforeAll(async () => {
+    await usersRef.doc(testUID).set(testUser)
   })
 
-  it("should get all users", async () => {
-    const response = await request(app).get("/users")
-    expect(response.statusCode).toBe(200)
-    expect(Array.isArray(response.body)).toBe(true)
+  afterAll(async () => {
+    await usersRef.doc(testUID).delete()
   })
 
-  it("should get a user by ID", async () => {
-    expect(createdUserId).toBeDefined()
-    const response = await request(app).get(`/users/${createdUserId}`)
-    expect(response.statusCode).toBe(200)
-    expect(response.body).toHaveProperty("id", createdUserId)
+  it("GET /users - should return all users", async () => {
+    const res = await request(app).get("/users")
+    expect(res.statusCode).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
   })
 
-  it("should update user role", async () => {
-    const response = await request(app)
-      .put(`/users/${createdUserId}`)
+  it("GET /users/:uid - should return a single user", async () => {
+    const res = await request(app).get(`/users/${testUID}`)
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveProperty("name", "Juan")
+  })
+
+  it("PUT /users/:uid - should update the user's role", async () => {
+    const res = await request(app)
+      .put(`/users/${testUID}`)
       .send({ role: "admin" })
 
-    expect(response.statusCode).toBe(200)
-    expect(response.body.message).toBe("Rol actualizado correctamente")
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveProperty("message", "Rol actualizado correctamente")
   })
 
-  it("should delete the user", async () => {
-    const response = await request(app).delete(`/users/${createdUserId}`)
-    expect(response.statusCode).toBe(200)
-    expect(response.body.message).toBe("Usuario eliminado correctamente")
-  })
-})
+  it("DELETE /users/:uid - should delete the user", async () => {
+    const res = await request(app).delete(`/users/${testUID}`)
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveProperty("message", "Usuario eliminado correctamente")
 
-afterAll(() => {
-  if (server) server.close()
+    const check = await usersRef.doc(testUID).get()
+    expect(check.exists).toBe(false)
+  })
 })

@@ -1,64 +1,94 @@
 import request from "supertest"
-import app from "../index.js"
-import mongoose from "mongoose"
-import Service from "../models/Service.js"
+import express from "express"
+import serviceRoutes from "../routes/serviceRoutes.js"
 
-let server
-let createdServiceId
+const app = express()
+app.use(express.json())
+app.use("/services", serviceRoutes)
 
-beforeAll(async () => {
-  server = app.listen(4003)
-  await mongoose.connect(process.env.MONGO_URI)
-})
+jest.mock("../models/Service.js", () => {
+  const mockServices = [
+    {
+      _id: "1",
+      title: "Alquiler de plantas",
+      description: "Servicio de alquiler de plantas para eventos.",
+      type: "Alquiler",
+      image: "alquiler.jpg",
+    },
+  ]
 
-afterAll(async () => {
-  await Service.deleteMany({})
-  await mongoose.connection.close()
-  server.close()
+  return {
+    __esModule: true,
+    default: class Service {
+      constructor(data) {
+        this._id = "2"
+        Object.assign(this, data)
+      }
+
+      static find() {
+        return Promise.resolve(mockServices)
+      }
+
+      static findById(id) {
+        const found = mockServices.find((s) => s._id === id)
+        return Promise.resolve(found || null)
+      }
+
+      static findByIdAndUpdate(id, data) {
+        return Promise.resolve({ _id: id, ...data })
+      }
+
+      static findByIdAndDelete(id) {
+        return Promise.resolve({ _id: id })
+      }
+
+      save() {
+        return Promise.resolve(this)
+      }
+    },
+  }
 })
 
 describe("Service API", () => {
-  it("should create a new service", async () => {
+  it("GET /services - should return all services", async () => {
+    const res = await request(app).get("/services")
+    expect(res.statusCode).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it("GET /services/:id - should return a single service", async () => {
+    const res = await request(app).get("/services/1")
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveProperty("title", "Alquiler de plantas")
+  })
+
+  it("POST /services - should create a new service", async () => {
     const newService = {
-      title: "Test Service",
-      description: "This is a test service",
-      type: "asesoramiento",
-      image: "https://example.com/test-service.jpg"
+      title: "Asesoramiento botánico",
+      description: "Consultoría para el cuidado de plantas.",
+      type: "Asesoramiento",
+      image: "asesoramiento.jpg",
     }
 
-    const response = await request(app).post("/services").send(newService)
-
-    expect(response.statusCode).toBe(201)
-    expect(response.body).toHaveProperty("_id")
-    expect(response.body.title).toBe("Test Service")
-
-    createdServiceId = response.body._id
+    const res = await request(app).post("/services").send(newService)
+    expect(res.statusCode).toBe(201)
+    expect(res.body.title).toBe("Asesoramiento botánico")
   })
 
-  it("should get all services", async () => {
-    const response = await request(app).get("/services")
-    expect(response.statusCode).toBe(200)
-    expect(Array.isArray(response.body)).toBe(true)
+  it("PUT /services/:id - should update a service", async () => {
+    const updatedService = {
+      title: "Servicio actualizado",
+      description: "Descripción nueva",
+    }
+
+    const res = await request(app).put("/services/1").send(updatedService)
+    expect(res.statusCode).toBe(200)
+    expect(res.body.title).toBe("Servicio actualizado")
   })
 
-  it("should get a service by ID", async () => {
-    const response = await request(app).get(`/services/${createdServiceId}`)
-    expect(response.statusCode).toBe(200)
-    expect(response.body._id).toBe(createdServiceId)
-  })
-
-  it("should update a service", async () => {
-    const response = await request(app)
-      .put(`/services/${createdServiceId}`)
-      .send({ title: "Updated Service" })
-
-    expect(response.statusCode).toBe(200)
-    expect(response.body.title).toBe("Updated Service")
-  })
-
-  it("should delete a service", async () => {
-    const response = await request(app).delete(`/services/${createdServiceId}`)
-    expect(response.statusCode).toBe(200)
-    expect(response.body.message).toBe("Servicio eliminado correctamente")
+  it("DELETE /services/:id - should delete a service", async () => {
+    const res = await request(app).delete("/services/1")
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe("Servicio eliminado correctamente")
   })
 })

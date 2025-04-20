@@ -1,66 +1,101 @@
 import request from "supertest"
-import app from "../index.js"
-import mongoose from "mongoose"
-import Product from "../models/Products.js"
+import express from "express"
+import productRoutes from "../routes/productRoutes.js"
 
-let server
-let createdProductId
+jest.mock("../models/products.js", () => {
+  const mockData = [
+    {
+      _id: "1",
+      name: "Ficus",
+      description: "Planta de interior",
+      price: 10,
+      category: "Interior",
+      size: "M",
+      image: "ficus.jpg"
+    },
+    {
+      _id: "2",
+      name: "Monstera",
+      description: "Planta tropical",
+      price: 15,
+      category: "Interior",
+      size: "L",
+      image: "monstera.jpg"
+    }
+  ]
 
-beforeAll(async () => {
-  server = app.listen(4001)
-  await mongoose.connect(process.env.MONGO_URI)
+  const Product = function (data) {
+    return {
+      ...data,
+      save: jest.fn().mockResolvedValue({
+        _id: "3",
+        ...data
+      })
+    }
+  }
+
+  Product.find = jest.fn().mockResolvedValue(mockData)
+  Product.findById = jest.fn().mockImplementation(id =>
+    Promise.resolve(mockData.find(p => p._id === id))
+  )
+  Product.findByIdAndUpdate = jest.fn().mockImplementation((id, data) =>
+    Promise.resolve({ _id: id, ...data })
+  )
+  Product.findByIdAndDelete = jest.fn().mockResolvedValue({ _id: "1" })
+
+  return {
+    __esModule: true,
+    default: Product
+  }
 })
 
-afterAll(async () => {
-  await Product.deleteMany({})
-  await mongoose.connection.close()
-  server.close()
-})
+const app = express()
+app.use(express.json())
+app.use("/products", productRoutes)
 
 describe("Product API", () => {
-  it("should create a new product", async () => {
+  it("GET /products - should return all products", async () => {
+    const res = await request(app).get("/products")
+    expect(res.statusCode).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body.length).toBeGreaterThan(0)
+  })
+
+  it("GET /products/:id - should return a single product", async () => {
+    const res = await request(app).get("/products/1")
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toHaveProperty("name", "Ficus")
+  })
+
+  it("POST /products - should create a new product", async () => {
     const newProduct = {
-      name: "Test Product",
-      description: "This is a test product",
-      price: 15.99,
-      category: "planta",
-      size: "mediana",
-      image: "https://example.com/test.jpg"
+      name: "Sansevieria",
+      description: "Resistente y elegante",
+      price: 12,
+      category: "Interior",
+      size: "S",
+      image: "sansevieria.jpg"
     }
 
-    const response = await request(app).post("/products").send(newProduct)
-
-    expect(response.statusCode).toBe(201)
-    expect(response.body).toHaveProperty("_id")
-    expect(response.body.name).toBe("Test Product")
-
-    createdProductId = response.body._id
+    const res = await request(app).post("/products").send(newProduct)
+    expect(res.statusCode).toBe(201)
+    expect(res.body.name).toBe("Sansevieria")
   })
 
-  it("should get all products", async () => {
-    const response = await request(app).get("/products")
-    expect(response.statusCode).toBe(200)
-    expect(Array.isArray(response.body)).toBe(true)
+  it("PUT /products/:id - should update a product", async () => {
+    const updatedData = {
+      name: "Ficus Lyrata",
+      price: 18
+    }
+
+    const res = await request(app).put("/products/1").send(updatedData)
+    expect(res.statusCode).toBe(200)
+    expect(res.body.name).toBe("Ficus Lyrata")
   })
 
-  it("should get a product by ID", async () => {
-    const response = await request(app).get(`/products/${createdProductId}`)
-    expect(response.statusCode).toBe(200)
-    expect(response.body._id).toBe(createdProductId)
-  })
-
-  it("should update a product", async () => {
-    const response = await request(app)
-      .put(`/products/${createdProductId}`)
-      .send({ price: 19.99 })
-
-    expect(response.statusCode).toBe(200)
-    expect(response.body.price).toBe(19.99)
-  })
-
-  it("should delete a product", async () => {
-    const response = await request(app).delete(`/products/${createdProductId}`)
-    expect(response.statusCode).toBe(200)
-    expect(response.body.message).toBe("Producto eliminado correctamente")
+  it("DELETE /products/:id - should delete a product", async () => {
+    const res = await request(app).delete("/products/1")
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe("Producto eliminado correctamente")
   })
 })
