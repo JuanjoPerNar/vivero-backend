@@ -36,8 +36,8 @@ El proyecto se conecta con **MongoDB Atlas** como base de datos principal y **Fi
 vivero-backend/
 ├── config/                 # Configuración global
 │   ├── db.js               # Conexión a MongoDB Atlas
-│   └── secrets/
-│       └── serviceAccountKey.json  # Clave privada para Firebase Admin
+│   └── secrets/            
+│       └── serviceAccountKey.json  # Clave privada para Firebase Admin (solo local)
 ├── controllers/            # Lógica de negocio de cada recurso
 ├── models/                 # Esquemas de Mongoose
 ├── routes/                 # Rutas de la API agrupadas por recurso                      
@@ -57,7 +57,7 @@ vivero-backend/
 1. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/tu-usuario/vivero-backend.git
+git clone https://github.com/JuanjoPerNar/vivero-backend
 cd vivero-backend
 ```
 
@@ -72,15 +72,12 @@ npm install
 ```env
 PORT=3000
 MONGO_URI=mongodb+srv://<usuario>:<contraseña>@<cluster>.mongodb.net/vivero
+FIREBASE_SERVICE_ACCOUNT={ "type": "service_account", "project_id": "...", ... }
 ```
 
-4. Añadir la clave de Firebase en:
+⚠️ IMPORTANTE: El valor de `FIREBASE_SERVICE_ACCOUNT` debe ser el contenido JSON completo de la clave, en una sola línea.
 
-```
-config/secrets/serviceAccountKey.json
-```
-
-5. Iniciar servidor en desarrollo:
+4. Iniciar servidor en desarrollo:
 
 ```bash
 npm run dev
@@ -93,7 +90,7 @@ npm run dev
 La documentación Swagger está disponible en:
 
 - Local: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)  
-- Producción: [https://<tu-app-en-render>.onrender.com/api-docs](https://<tu-app-en-render>.onrender.com/api-docs)
+- Producción: [https://vivero-backend.onrender.com/api-docs](https://vivero-backend.onrender.com/api-docs)
 
 ---
 
@@ -129,7 +126,7 @@ npm test
 
 ## Consideraciones
 
-- Este backend está desplegado en **Render**.  
+- Este backend está desplegado en **Render**: [https://vivero-backend.onrender.com](https://vivero-backend.onrender.com)  
 - Las rutas de autenticación y gestión de usuarios usan Firebase y Firestore.  
 - Las claves y tokens sensibles están ocultos mediante `.env` y `.gitignore`.  
 - El backend está preparado para desarrollo local y despliegue en producción.  
