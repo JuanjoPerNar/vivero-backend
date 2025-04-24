@@ -1,14 +1,17 @@
 import { initializeApp, cert, getApps } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
-import fs from "fs"
-import path from "path"
 
-const serviceAccountPath = path.resolve("config/secrets/serviceAccountKey.json")
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"))
+const firebaseKey = process.env.FIREBASE_SERVICE_ACCOUNT
+
+if (!firebaseKey) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT no está definida en el entorno")
+}
+
+const serviceAccount = JSON.parse(firebaseKey)
 
 if (!getApps().length) {
   initializeApp({
-    credential: cert(serviceAccount)
+    credential: cert(serviceAccount),
   })
 }
 
